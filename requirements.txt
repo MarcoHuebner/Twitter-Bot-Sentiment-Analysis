@@ -1,0 +1,7 @@
+pandas>=1.2.2
+tweepy>=3.10.0
+numpy>=1.20.1
+typing>=3.7.4.3
+tqdm>=4.56.2
+matplotlib>=3.3.4
+seaborn>=0.11.1

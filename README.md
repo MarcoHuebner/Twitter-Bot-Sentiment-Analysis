@@ -14,5 +14,11 @@ structure is somewhat clean.
 
 - jupyter notebooks will not be functioning (missing data) but probably give some nice code snippets
 - additional videos aid explaining stuff from the notebook
-- a functioning requirements.txt might be nice, I have to see how this works under Windows
+- [Tweepy Documentation](https://docs.tweepy.org/en/latest/)
+  - [Tweepy API.search Documentation](https://docs.tweepy.org/en/latest/api.html?highlight=api.search#API.search)
 - Stuff like [this](https://www.youtube.com/watch?v=W0wWwglE1Vc) might provide further useful first steps.
+
+### Installation
+
+After cloning, run `pip install -r requirements.txt` to get the relevant packages. Might not include all necessary 
+packages yet, but I would like to try that on Linux, not Windows. 
