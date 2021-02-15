@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 
 from nltk.corpus import stopwords
 from helpers import Helpers
+from config_local import ConfigPaths
 
 # %%
 # settings
@@ -22,9 +23,8 @@ warnings.filterwarnings('ignore')
 sns.set(font_scale=1.5)
 sns.set_style('whitegrid')
 
-abspath = os.path.abspath(__file__)
-dirname = os.path.dirname(abspath)
-os.chdir(dirname)
+# set working directory
+os.chdir(ConfigPaths().work_dir)
 
 # initialize api
 api_helpers = Helpers()
@@ -41,24 +41,14 @@ search_words = '#lockdown' + ' -filter:retweets'
 data_since = '2021-02-11'
 
 # Collect tweets
-tweets = tw.Cursor(api.search,
-                   q=search_words,
-                   lang='de',
-                   since=data_since).items(5)
-[tweet.text for tweet in tweets]
-users_locs = [[tweet.user.screen_name, tweet.user.location] for tweet in tweets]
-tweet_text = pd.DataFrame(data=users_locs, columns=['user', 'location'])
-tweet_text
-
+tweets = tw.Cursor(api.search, q=search_words, lang='de', since=data_since).items(5)
+print(api_helpers.data_handler(tweets, info=["user", "location", "full_text"]))
 
 # %%
 # Tweet word frequency analysis
 search_words = '#climate+change -filter:retweets'
 
-tweets = tw.Cursor(api.search,
-                   q=search_words,
-                   lang='en',
-                   since=data_since).items(1000)
+tweets = tw.Cursor(api.search, q=search_words, lang='en', since=data_since).items(1000)
 
 all_tweets = [tweet.text for tweet in tweets]
 all_tweets[:5]
