@@ -3,3 +3,6 @@ twitter.*
 *.xml
 *.iml
 *_local*
+*.mp4
+*__pycache__*
+keys
