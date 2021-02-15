@@ -3,4 +3,4 @@ twitter.*
 *.xml
 *.iml
 *_local*
-__pychache__.*
+__pycache__.*
