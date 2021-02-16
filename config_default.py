@@ -11,10 +11,8 @@ abspath = os.path.abspath(__file__)
 work_dir = os.path.dirname(abspath)
 key_dir = '/path/to/keys.csv'
 
+
 class ConfigPaths(object):
     def __init__(self):
         self.work_dir = work_dir
         self.key_dir = key_dir
-        
-
-    
