@@ -4,9 +4,13 @@ Provides helper functions to call in (main) script
 """
 
 import os
+import re
+import nltk
+import warnings
 import numpy as np
 import tweepy as tw
 import pandas as pd
+import seaborn as sns
 from typing import Any, List, Union
 
 from config_local import ConfigPaths
@@ -15,6 +19,23 @@ from config_local import ConfigPaths
 class Helpers(object):
     def __init__(self):
         pass
+
+    @staticmethod
+    def settings(warning: str = None) -> None:
+        """
+        One common place for common settings.
+        :param warning: str, standard setting is None, allowed parameters given by warnings.filterwarnings, e.g. ignore
+        :return: None
+        """
+        # ignore warnings if warning string not None
+        if warning:
+            warnings.filterwarnings('ignore')
+        # nltk stopwords download
+        nltk.download('stopwords')
+        # plot settings
+        sns.set(font_scale=1.5)
+        sns.set_style('whitegrid')
+        return None
 
     @staticmethod
     def init_api(row: int = 0) -> Any:
@@ -34,10 +55,10 @@ class Helpers(object):
             raise IOError("Key directory non-existent or empty. Check the README on renaming config_default.py and "
                           "check for correctness of given path")
 
-    def multi_init_api(self) -> Union[Any, List[Any]]:
+    def multi_init_api(self) -> Union[List[Any]]:
         """
         Sets tokens and returns set up API or list of APIs.
-        :return: Union[tw.API, List[tw.API]], initialized to be waiting on rate limit
+        :return: Union[List[tw.API]], initialized to be waiting on rate limit
         """
         # exception handling: Existence and emptiness of given directory
         if os.path.isfile(ConfigPaths().key_dir):
@@ -51,7 +72,7 @@ class Helpers(object):
 
                     return api_list
                 else:
-                    return self.init_api()
+                    return list(self.init_api())
         else:
             raise IOError("Key directory non-existent or empty. Check the README on renaming config_default.py and "
                           "check for correctness of given path")
@@ -83,6 +104,15 @@ class Helpers(object):
             tweet_df[info_list[value]] = array_of_lists[value]
 
         return tweet_df
+
+    @staticmethod
+    def remove_url(txt: str) -> str:  # TODO: add documentation
+        """
+        ???
+        :param txt: str
+        :return: str
+        """
+        return ' '.join(re.sub('([^0-9A-Za-z \t])|(\w+:\/\/\S+)', '', txt).split())
 
     # TODO: Advanced request handling
     @staticmethod
