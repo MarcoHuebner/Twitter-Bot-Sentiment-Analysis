@@ -5,14 +5,10 @@ Contains paths to:
 
 """
 
-import os
-
-abspath = os.path.abspath(__file__)
-work_dir = os.path.dirname(abspath)
-key_dir = '/path/to/keys.csv'
+import pathlib
 
 
 class ConfigPaths(object):
     def __init__(self):
-        self.work_dir = work_dir
-        self.key_dir = key_dir
+        self.work_dir = str(pathlib.Path().absolute())
+        self.key_dir = '/path/to/keys.csv'
