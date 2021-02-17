@@ -39,7 +39,7 @@ search_words = '#climate+change -filter:retweets'
 # TODO: Make a general text preprocessing function, incorporating all these steps
 tweets = tw.Cursor(api.search, q=search_words, lang='en', since=data_since).items(1000)
 all_tweets = [tweet.text for tweet in tweets]
-all_tweets_no_urls = [api_helpers.remove_url(tweet) for tweet in all_tweets]
+all_tweets_no_urls = [api_helpers.clean_text(tweet) for tweet in all_tweets]
 word_in_tweet = [tweet.lower().split() for tweet in all_tweets_no_urls]
 
 # %%
