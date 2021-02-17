@@ -106,13 +106,23 @@ class Helpers(object):
         return tweet_df
 
     @staticmethod
-    def remove_url(txt: str) -> str:  # TODO: add documentation
+    def clean_text(txt: str) -> str:
         """
-        ???
-        :param txt: str
-        :return: str
+        removes urls and special character, as well as transforming everything to lower case
+        :param txt: str, string to be transformed
+        :return: str, transformed string
         """
-        return ' '.join(re.sub('([^0-9A-Za-z \t])|(\w+:\/\/\S+)', '', txt).split())
+        return ' '.join(re.sub('([^0-9A-Za-z \t])|(\w+:\/\/\S+)', '', txt.lower()).split())
+
+    def clean_text_df(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        converts text to lower and removes urls and special characters
+        :param df: pd.DataFrame provided by data_handler
+        :return: pd.DataFrame containing no urls and only lowercase letters and numbers
+        """
+        df = df.applymap(self.clean_text)
+        return df
+        
 
     # TODO: Advanced request handling
     @staticmethod
