@@ -12,7 +12,6 @@ import tweepy as tw
 import pandas as pd
 import seaborn as sns
 from typing import Any, List, Union
-
 from config_local import ConfigPaths
 
 
@@ -122,7 +121,26 @@ class Helpers(object):
         """
         df = df.applymap(self.clean_text)
         return df
-        
+
+    @staticmethod
+    def get_words(df: pd.DataFrame, collection_words: List[str], stop_words, clean: bool = True) -> pd.DataFrame:
+        """
+        #TODO implement collections_word as automatic function, extracting them from tweet element itself
+        #TODO implement stop_words as automatic function, update format
+        splits tweet text into lists of words 
+        :param df: pd.DataFrame with 'full_text' column
+        :praram collection_words: list[str], list of the word used to collect tweets
+        :praram stop_words: list[str], list of stopwords to remove
+        :param clean: bool, if set to True (default) stop and collection words are removed
+        :return: pd.DataFrame with 'full_text' transformed into list of words
+        """     
+        df['full_text'] = df['full_text'].apply(lambda x: x.split())   
+        if clean==True:
+            df['full_text'] = df['full_text'].apply(lambda x: [word for word in x if word not in stop_words])
+            df['full_text'] = df['full_text'].apply(lambda x: [word for word in x if word not in collection_words])
+            
+        return df
+
 
     # TODO: Advanced request handling
     @staticmethod

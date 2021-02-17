@@ -7,7 +7,6 @@ import itertools
 import tweepy as tw
 import pandas as pd
 import matplotlib.pyplot as plt
-
 from nltk.corpus import stopwords
 from helpers import Helpers
 from config_local import ConfigPaths
@@ -17,7 +16,7 @@ os.chdir(ConfigPaths().work_dir)
 
 # initialize api and settings
 api_helpers = Helpers()
-api = api_helpers.multi_init_api()[0]  # only use first key
+api = api_helpers.init_api() # only use first key
 api_helpers.settings(warning="ignore")
 
 # ################ Old toy example #####################################################################################
@@ -35,17 +34,19 @@ print(df)
 # %%
 # Tweet word frequency analysis
 search_words = '#climate+change -filter:retweets'
+stop_words = stopwords.words('english')
+collection_words = ['climate', 'change', 'climatechange']
 
 # TODO: Make a general text preprocessing function, incorporating all these steps
-tweets = tw.Cursor(api.search, q=search_words, lang='en', since=data_since).items(1000)
-all_tweets = [tweet.text for tweet in tweets]
-all_tweets_no_urls = [api_helpers.clean_text(tweet) for tweet in all_tweets]
-word_in_tweet = [tweet.lower().split() for tweet in all_tweets_no_urls]
+tweets = tw.Cursor(api.search, q=search_words, lang='en', since=data_since).items(100)
+df = api_helpers.data_handler(tweets, info=["user", "location", "full_text"])
+df = api_helpers.clean_text_df(df)
+df = api_helpers.get_words(df, collection_words, stop_words)
+df
 
 # %%
-stop_words = stopwords.words('english')
-tweets_nsw = [[word for word in tweet_words if word not in stop_words] for tweet_words in word_in_tweet]
-clean_tweets_nsw = pd.DataFrame(list(itertools.chain(*tweets_nsw)), columns=["words"])\
+
+clean_tweets_nsw = pd.DataFrame(list(itertools.chain(*df['full_text'])), columns=["words"])\
                    .value_counts().rename("count").to_frame().head(15)
 
 # %%
@@ -55,10 +56,4 @@ clean_tweets_nsw.plot.barh(y='count', ax=ax, color='purple')
 ax.set_title('Common Words Found in Tweets')
 plt.show()
 
-# %%
-collection_words = ['climate', 'change', 'climatechange']
-
-tweets_nsw_nc = [[word for word in tweet_words if word not in stop_words or collection_words]
-                 for tweet_words in word_in_tweet]
-print(tweets_nsw_nc[0])
 # %%
