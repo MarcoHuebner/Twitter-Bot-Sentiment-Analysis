@@ -23,7 +23,8 @@ class Helpers(object):
     def settings(warning: str = None) -> None:
         """
         One common place for common settings.
-        :param warning: str, standard setting is None, allowed parameters given by warnings.filterwarnings, e.g. ignore
+        :param warning: str, standard setting is None, allowed parameters given
+        by warnings.filterwarnings, e.g. ignore
         :return: None
         """
         # ignore warnings if warning string not None
@@ -40,19 +41,23 @@ class Helpers(object):
     def init_api(row: int = 0) -> Any:
         """
         Sets tokens and returns set up API.
-        :param row: int, row number of key set, default 0. Added for compatibility with multiple accounts/ keys
+        :param row: int, row number of key set, default 0. Added for
+        compatibility with multiple accounts/ keys
         :return: tw.API, initialized to be waiting on rate limit
         """
         # exception handling: Existence and emptiness of given directory
         if os.path.isfile(ConfigPaths().key_dir):
             if os.stat(ConfigPaths().key_dir).st_size != 0:
                 keys = pd.read_csv(ConfigPaths().key_dir)
-                auth = tw.OAuthHandler(keys.at[row, 'consumer_key'], keys.at[row, 'consumer_secret'])
-                auth.set_access_token(keys.at[row, 'access_token'], keys.at[row, 'access_token_secret'])
+                auth = tw.OAuthHandler(keys.at[row, 'consumer_key'],
+                                       keys.at[row, 'consumer_secret'])
+                auth.set_access_token(keys.at[row, 'access_token'],
+                                      keys.at[row, 'access_token_secret'])
                 return tw.API(auth, wait_on_rate_limit=True)
         else:
-            raise IOError("Key directory non-existent or empty. Check the README on renaming config_default.py and "
-                          "check for correctness of given path")
+            raise IOError("Key directory non-existent or empty. Check the "
+                          "README on renaming config_default.py and check for "
+                          "correctness of given path")
 
     def multi_init_api(self) -> Union[List[Any]]:
         """
@@ -73,26 +78,35 @@ class Helpers(object):
                 else:
                     return list(self.init_api())
         else:
-            raise IOError("Key directory non-existent or empty. Check the README on renaming config_default.py and "
-                          "check for correctness of given path")
+            raise IOError("Key directory non-existent or empty. Check the "
+                          "README on renaming config_default.py and check for "
+                          "correctness of given path")
 
     @staticmethod
     def data_handler(tweets: Any, info: List[str]) -> pd.DataFrame:
         """
-        # TODO: Needs to be updated to contain all possible relevant information (and possibly be reworked)
+        # TODO: Needs to be updated to contain all possible relevant
+        # information (and possibly be reworked)
         # TODO: Could this simply be done with pd.DataFrame(tw.Cursor(...))?
-        Shortened method to extract relevant data from tw.Cursor into pd.DataFrame with info columns.
-        :param tweets: tw.Cursor search, delivering filtered and downloaded tweets
+        Shortened method to extract relevant data from tw.Cursor into
+        pd.DataFrame with info columns.
+        :param tweets: tw.Cursor search, delivering filtered and downloaded
+        tweets
         :param info: List[str], tw.Cursor results to filter from
         :return: pd.DataFrame, containing only the given/ relevant columns
         """
         # tweet. seems to be an inplace operation
-        array_of_lists = np.array([[tweet.user.screen_name, tweet.user.location, tweet.text] for tweet in tweets]).T
-        # TODO: is there a way to automate data extraction? -> see above's note of direct conversion to pd.DataFrame
-        # Important: array_of_lists and info_list have to have the same ordering, otherwise later indexing fails
+        array_of_lists = np.array(
+            [[tweet.user.screen_name, tweet.user.location, tweet.text]
+                for tweet in tweets]).T
+        # TODO: is there a way to automate data extraction? -> see above's note
+        # of direct conversion to pd.DataFrame
+        # Important: array_of_lists and info_list have to have the same
+        # ordering, otherwise later indexing fails
         info_list = ["user", "location", "full_text"]
 
-        # exception handling for different sized lists; not needed when array is used (done by numpy then)
+        # exception handling for different sized lists; not needed when array
+        # is used (done by numpy then)
         if any(len(lst) != len(array_of_lists[0]) for lst in array_of_lists):
             raise ValueError("All lists need to have the same length!")
 
@@ -107,42 +121,53 @@ class Helpers(object):
     @staticmethod
     def clean_text(txt: str) -> str:
         """
-        removes urls and special character, as well as transforming everything to lower case
+        removes urls, as well as transforming everything to lower case
         :param txt: str, string to be transformed
         :return: str, transformed string
         """
-        return ' '.join(re.sub('([^0-9A-Za-z \t])|(\w+:\/\/\S+)', '', txt.lower()).split())
+        url_pattern = re.compile(r'https?://\S+|www\.\S+')
+        no_url = url_pattern.sub(r'', txt)
+        return no_url
 
     def clean_text_df(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         converts text to lower and removes urls and special characters
         :param df: pd.DataFrame provided by data_handler
-        :return: pd.DataFrame containing no urls and only lowercase letters and numbers
+        :return: pd.DataFrame containing no urls and only lowercase letters and
+        numbers
         """
         df = df.applymap(self.clean_text)
         return df
 
     @staticmethod
-    def get_words(df: pd.DataFrame, collection_words: List[str], stop_words, clean: bool = True) -> pd.DataFrame:
+    def get_words(df: pd.DataFrame,
+                  collection_words: List[str],
+                  stop_words,
+                  clean: bool = True) -> pd.DataFrame:
         """
-        #TODO implement collections_word as automatic function, extracting them from tweet element itself
+        #TODO implement collections_word as automatic function, extracting them
+        # from tweet element itself
         #TODO implement stop_words as automatic function, update format
-        splits tweet text into lists of words 
+        splits tweet text into lists of words
         :param df: pd.DataFrame with 'full_text' column
-        :praram collection_words: list[str], list of the word used to collect tweets
+        :praram collection_words: list[str], list of the word used to collect
+        tweets
         :praram stop_words: list[str], list of stopwords to remove
-        :param clean: bool, if set to True (default) stop and collection words are removed
+        :param clean: bool, if set to True (default) stop and collection words
+        are removed
         :return: pd.DataFrame with 'full_text' transformed into list of words
-        """     
-        df['full_text'] = df['full_text'].apply(lambda x: x.split())   
-        if clean==True:
-            df['full_text'] = df['full_text'].apply(lambda x: [word for word in x if word not in stop_words])
-            df['full_text'] = df['full_text'].apply(lambda x: [word for word in x if word not in collection_words])
-            
+        """
+        df['full_text'] = df['full_text'].apply(lambda x: x.split())
+        if clean is True:
+            df['full_text'] = df['full_text'].apply(
+                lambda x: [word for word in x if word not in stop_words])
+            df['full_text'] = df['full_text'].apply(
+                lambda x: [word for word in x if word not in collection_words])
+
         return df
 
-
     # TODO: Advanced request handling
+
     @staticmethod
     def cache():
         """
@@ -151,4 +176,5 @@ class Helpers(object):
         """
         pass
 
-    # TODO: Data visualization, e.g. for locations with e.g. seaborn/ matplotlib scatter
+    # TODO: Data visualization, e.g. for locations with e.g. seaborn/
+    # matplotlib scatter
