@@ -12,6 +12,7 @@ from nltk.corpus import stopwords
 from nltk import bigrams
 from helpers import Helpers
 from config_local import ConfigPaths
+from textblob import TextBlob
 
 # set working directory  # TODO: What does this do? If needed in your IDE
 # consider putting it in config default/ local
@@ -83,12 +84,29 @@ fig, ax = plt.subplots(figsize=(10, 8))
 pos = nx.spring_layout(G, k=2)
 
 # Plot networks
-nx.draw_networkx(G, pos, font_size=16, width=3, edge_color='grey', node_color='purple', with_labels=False, ax=ax)
+nx.draw_networkx(G, pos, font_size=16, width=3, edge_color='grey',
+                 node_color='purple', with_labels=False, ax=ax)
 
 # Create offset labels
 for key, value in pos.items():
     x, y = value[0]+.135, value[1]+.045
-    ax.text(x, y, s=key, bbox=dict(facecolor='red', alpha=0.25), horizontalalignment='center', fontsize=13)
+    ax.text(x, y, s=key, bbox=dict(facecolor='red', alpha=0.25),
+            horizontalalignment='center', fontsize=13)
 plt.show()
 
 # %%
+
+# Create textblob objects of the tweets
+sentiment_objects = [[TextBlob(word) for word in tweet] for tweet in df['full_text']]
+
+# Create df of polarity valuesx and tweet text
+sentiment_values = [[[word.sentiment.polarity, str(word)]
+                     for word in tweet] for tweet in sentiment_objects]
+sentiment_df = pd.DataFrame(list(itertools.chain(*sentiment_values)), columns=["polarity", "tweet"])
+sentiment_df.sort_values('polarity')
+
+# plot sentiments (without neutral words)
+fig, ax = plt.subplots(figsize=(8, 8))
+sentiment_df[sentiment_df.polarity != 0].plot.hist(ax=ax, color='purple')
+plt.title("Sentiments from Tweets on Climate Change")
+plt.show()
