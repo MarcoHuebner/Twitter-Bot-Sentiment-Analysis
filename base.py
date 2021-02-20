@@ -1,5 +1,4 @@
 # %%
-import os
 import itertools
 import collections
 
@@ -10,13 +9,9 @@ import matplotlib.pyplot as plt
 
 from nltk.corpus import stopwords
 from nltk import bigrams
-from helpers import Helpers
-from config_local import ConfigPaths
 from textblob import TextBlob
+from helpers import Helpers
 
-# set working directory  # TODO: What does this do? If needed in your IDE
-# consider putting it in config default/ local
-os.chdir(ConfigPaths().work_dir)
 
 # initialize api and settings
 api_helpers = Helpers()

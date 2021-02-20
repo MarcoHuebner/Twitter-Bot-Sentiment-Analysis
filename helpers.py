@@ -27,6 +27,8 @@ class Helpers(object):
         by warnings.filterwarnings, e.g. ignore
         :return: None
         """
+        # set relative working directory
+        os.chdir(ConfigPaths().work_dir)
         # ignore warnings if warning string not None
         if warning:
             warnings.filterwarnings('ignore')
