@@ -18,19 +18,6 @@ api_helpers = Helpers()
 api = api_helpers.init_api()
 api_helpers.settings(warning="ignore")
 
-
-# ################ Old toy example ############################################
-# %%
-# Define search terms
-search_words = '#lockdown' + ' -filter:retweets'
-data_since = '2021-02-11'
-
-# Collect tweets TODO: Automate tw.Cursor in separate function
-tweets = tw.Cursor(api.search, q=search_words, lang='de', since=data_since).items(5)
-df = api_helpers.data_handler(tweets, info=["user", "location", "full_text"])
-print(df)
-###############################################################################
-
 # %%
 # Tweet word frequency analysis
 search_words = '#climate+change -filter:retweets'
@@ -39,7 +26,7 @@ collection_words = ['climate', 'change', 'climatechange']
 
 # TODO: Make a general text preprocessing function, incorporating all these steps
 tweets = tw.Cursor(api.search, q=search_words, lang='en', since=data_since).items(100)
-df = api_helpers.data_handler(tweets, info=["user", "location", "full_text"])
+df = api_helpers.data_handler_old(tweets, info=["user", "location", "full_text"])
 df = api_helpers.get_words(df, collection_words, stop_words)
 df
 
