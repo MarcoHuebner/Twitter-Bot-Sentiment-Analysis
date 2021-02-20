@@ -6,6 +6,7 @@ Provides helper functions to call in (main) script
 import os
 import re
 import nltk
+import json
 import warnings
 import numpy as np
 import tweepy as tw
@@ -23,8 +24,7 @@ class Helpers(object):
     def settings(warning: str = None) -> None:
         """
         One common place for common settings.
-        :param warning: str, standard setting is None, allowed parameters given
-        by warnings.filterwarnings, e.g. ignore
+        :param warning: str, standard setting is None, allowed parameters given by warnings.filterwarnings, e.g. ignore
         :return: None
         """
         # set relative working directory
@@ -43,8 +43,7 @@ class Helpers(object):
     def init_api(row: int = 0) -> Any:
         """
         Sets tokens and returns set up API.
-        :param row: int, row number of key set, default 0. Added for
-        compatibility with multiple accounts/ keys
+        :param row: int, row number of key set, default 0. Added for compatibility with multiple accounts/ keys
         :return: tw.API, initialized to be waiting on rate limit
         """
         # exception handling: Existence and emptiness of given directory
@@ -57,9 +56,8 @@ class Helpers(object):
                                       keys.at[row, 'access_token_secret'])
                 return tw.API(auth, wait_on_rate_limit=True)
         else:
-            raise IOError("Key directory non-existent or empty. Check the "
-                          "README on renaming config_default.py and check for "
-                          "correctness of given path")
+            raise IOError("Key directory non-existent or empty. Check the README on renaming config_default.py and "
+                          "check for correctness of given path")
 
     def multi_init_api(self) -> Union[List[Any]]:
         """
@@ -85,15 +83,81 @@ class Helpers(object):
                           "correctness of given path")
 
     @staticmethod
-    def data_handler(tweets: Any, info: List[str]) -> pd.DataFrame:
+    def data_handler(tweets: Any, geo: bool = None, user_metadata: bool = True) -> pd.DataFrame:
         """
-        # TODO: Needs to be updated to contain all possible relevant
-        # information (and possibly be reworked)
+        # TODO: Simplify and accelerate the function
+
+        :param tweets: tw.Cursor search, delivering filtered and downloaded tweets # TODO: read this from file where pkl
+                                                                                   # TODO: dumped _json
+        :param geo: bool, filter for available geo data and skip if no data given
+        :param user_metadata: bool, determine whether to collect user metadata like followers count or friends count as
+                              well as mentioned users
+        :return: pd.DataFrame, containing only the given/ relevant columns
+        """
+        # set up empty list to append row_dict to (faster than DataFrame.append)
+        row_list = []
+
+        # Process data from tweets
+        for tweet in tweets:
+            # check for geo values if desired, skip tweet if unsuccessful
+            if geo:
+                if tweet.geo is None:
+                    continue
+
+            # load data from json or through tweepy methods
+            tweet_json = json.dumps(tweet._json)
+
+            row_dict = {"text": tweet.text}
+            hashtags = []
+            for i, value in enumerate(tweet.entities['hashtags']):
+                hashtags.append(tweet.entities['hashtags'][i]["text"])
+            row_dict.update({"hashtags": hashtags})
+            row_dict.update({"source": tweet.source})
+            row_dict.update({"user_id": json.loads(tweet_json)["user"]["id"]})
+            row_dict.update({"user_screen_name": json.loads(tweet_json)["user"]["screen_name"]})
+            row_dict.update({"user_name": json.loads(tweet_json)["user"]["name"]})
+            row_dict.update({"location": json.loads(tweet_json)["user"]["location"]})
+            row_dict.update({"description": json.loads(tweet_json)["user"]["description"]})
+            row_dict.update({"protected": json.loads(tweet_json)["user"]["protected"]})
+            row_dict.update({"coordinates": tweet.coordinates})
+            row_dict.update({"retweet_count": json.loads(tweet_json)["retweet_count"]})
+            row_dict.update({"favourite_count": json.loads(tweet_json)["favorite_count"]})
+            # TODO: KeyError: 'possibly_sensitive'
+            # possibly_sensitive = json.loads(tweet_json)["possibly_sensitive"]
+            row_dict.update({"language": json.loads(tweet_json)["lang"]})
+
+            if user_metadata:
+                # compute metadata which would otherwise be additional burden
+                user_mentions_id = []
+                user_mentions_screen_name = []
+                user_mentions_name = []
+                for i, value in enumerate(tweet.entities['user_mentions']):
+                    user_mentions_id.append(tweet.entities['user_mentions'][i]["id"])
+                    user_mentions_screen_name.append(tweet.entities['user_mentions'][i]["screen_name"])
+                    user_mentions_name.append(tweet.entities['user_mentions'][i]["name"])
+                row_dict.update({"user_mentions_id": user_mentions_id})
+                row_dict.update({"user_mentions_screen_name": user_mentions_screen_name})
+                row_dict.update({"user_mentions_name": user_mentions_name})
+                row_dict.update({"am_followers": json.loads(tweet_json)["user"]["followers_count"]})
+                row_dict.update({"am_friends": json.loads(tweet_json)["user"]["friends_count"]})
+                row_dict.update({"am_favourites": json.loads(tweet_json)["user"]["favourites_count"]})
+                row_dict.update({"verified": json.loads(tweet_json)["user"]["verified"]})
+                row_dict.update({"am_status": json.loads(tweet_json)["user"]["statuses_count"]})
+                # append to list of rows
+                row_list.append(row_dict)
+            else:
+                # append to list of rows
+                row_list.append(row_dict)
+
+        return pd.DataFrame(row_list)
+
+    @staticmethod
+    def data_handler_old(tweets: Any, info: List[str]) -> pd.DataFrame:
+        """
+        # TODO: Needs to be updated to contain all possible relevant information (and possibly be reworked)
         # TODO: Could this simply be done with pd.DataFrame(tw.Cursor(...))?
-        Shortened method to extract relevant data from tw.Cursor into
-        pd.DataFrame with info columns.
-        :param tweets: tw.Cursor search, delivering filtered and downloaded
-        tweets
+        Shortened method to extract relevant data from tw.Cursor into pd.DataFrame with info columns.
+        :param tweets: tw.Cursor search, delivering filtered and downloaded tweets
         :param info: List[str], tw.Cursor results to filter from
         :return: pd.DataFrame, containing only the given/ relevant columns
         """
