@@ -1,5 +1,5 @@
 pandas>=1.2.2
-tweepy>=3.10.0
+tweepy==3.10.0  # fix version to allow access to protected class member _json (as it might be removed in future)
 numpy>=1.20.1
 typing>=3.7.4.3
 tqdm>=4.56.2

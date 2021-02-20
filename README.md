@@ -12,8 +12,9 @@ structure is somewhat clean.
 
 ### Next steps
 
-- jupyter notebooks will not be functioning (missing data) but probably give some nice code snippets
-- additional videos aid explaining stuff from the notebook
+- **Preprocessing:** Most useful is probably loading the tweets as json and dumping/ appending them with pickle. Afterwards
+  this file can be read and preprocessed with a data handler, allowing for different processing steps without loss of
+  information when already selecting before saving.
 - [Tweepy Documentation](https://docs.tweepy.org/en/latest/)
   - [Tweepy API.search Documentation](https://docs.tweepy.org/en/latest/api.html?highlight=api.search#API.search)
   - [Tweepy API Reference](https://docs.tweepy.org/en/latest/api.html) for rate limit handling
