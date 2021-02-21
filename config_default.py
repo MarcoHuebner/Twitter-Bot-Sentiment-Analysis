@@ -12,3 +12,4 @@ class ConfigPaths(object):
     def __init__(self):
         self.work_dir = str(pathlib.Path().absolute())
         self.key_dir = '/path/to/keys.csv'
+        self.save_dir = '/path/to/data/directory'
