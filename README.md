@@ -12,12 +12,10 @@ structure is somewhat clean.
 
 ### Next steps
 
-- **Preprocessing:** Most useful is probably loading the tweets as json and dumping/ appending them with pickle. Afterwards
-  this file can be read and preprocessed with a data handler, allowing for different processing steps without loss of
-  information when already selecting before saving.
 - [Tweepy Documentation](https://docs.tweepy.org/en/latest/)
   - [Tweepy API.search Documentation](https://docs.tweepy.org/en/latest/api.html?highlight=api.search#API.search)
   - [Tweepy API Reference](https://docs.tweepy.org/en/latest/api.html) for rate limit handling
+- [Twitter API limits](https://developer.twitter.com/en/docs/twitter-api/rate-limits) Assuming API v2 is used.
 - Stuff like [this](https://www.youtube.com/watch?v=W0wWwglE1Vc) might provide further useful first steps.
 - Idea: Mining and negative mining 0.1: Try to extract age/ gender etc. data based on tweet history and find ways to 
   "trick" the discriminator by new bot posts to anonymize identity.

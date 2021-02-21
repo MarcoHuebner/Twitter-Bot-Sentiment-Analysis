@@ -15,7 +15,7 @@ from helpers import Helpers
 
 # initialize api and settings
 api_helpers = Helpers()
-api = api_helpers.init_api()
+api = api_helpers._init_api()
 api_helpers.settings(warning="ignore")
 
 # %%
