@@ -20,6 +20,7 @@ api_helpers.settings(warning="ignore")
 
 # %%
 # Tweet word frequency analysis
+data_since = '2021-02-11'
 search_words = '#climate+change -filter:retweets'
 stop_words = stopwords.words('english')
 collection_words = ['climate', 'change', 'climatechange']
