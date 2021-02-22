@@ -96,6 +96,7 @@ class Helpers(object):
         """
         # TODO: replace cursor_search with more sophisticated and encompassing method (e.g. for going back longer than
         #  weeks and/ or not only using tw.Cursor)
+        start = time.time()
         tweets = self.cursor_search(search_words=search_words, lang=lang, items=items)
         # append to existing file or create new file if file is not existing
         for tweet in tweets:
@@ -107,6 +108,7 @@ class Helpers(object):
                 open(ConfigPaths().save_dir + filename, 'a').close()
                 with open(ConfigPaths().save_dir + filename, "a") as file:
                     file.write(tweet)
+        print("Searching and saving", items, "tweets took", time.time() - start, "seconds")
         return None
 
     @staticmethod
@@ -124,8 +126,8 @@ class Helpers(object):
         :return: pd.DataFrame, containing only the given/ relevant columns
         """
         # set up empty list to append row_dict to (faster than DataFrame.append)
+        start = time.time()
         row_list = []
-
         # Loading data from either cursor search or file (previously saved search)
         if from_cursor:
             tweets = tweets
@@ -190,7 +192,7 @@ class Helpers(object):
             else:
                 # append to list of rows
                 row_list.append(row_dict)
-
+        print("Processing", len(row_list), "tweets took", time.time() - start, "seconds")
         return pd.DataFrame(row_list)
 
     @staticmethod
