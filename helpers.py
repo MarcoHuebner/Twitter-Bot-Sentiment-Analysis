@@ -156,6 +156,7 @@ class Helpers(object):
             for i, value in enumerate(loader["entities"]["hashtags"]):
                 hashtags.append(loader["entities"]["hashtags"][i]["text"])
             row_dict.update({"hashtags": hashtags})
+            row_dict.update({"date": loader["created_at"]})
             row_dict.update({"source": loader["source"]})
             row_dict.update({"user_id": loader["user"]["id"]})
             row_dict.update({"user_screen_name": loader["user"]["screen_name"]})
@@ -283,29 +284,30 @@ class Helpers(object):
 
     def clean_text_df(self, df: pd.DataFrame) -> pd.DataFrame:
         """
+        # TODO: function changes object itself, but should give new changed object
         Converts 'full_text' column of data handler DataFrame according to clean text function.
         :param df: pd.DataFrame provided by data_handler
         :return: pd.DataFrame containing no URLs and only lowercase letters and numbers
         """
-        df["full_text"] = df["full_text"].map(self.clean_text)
+        df["text"] = df["text"].map(self.clean_text)
         return df
 
     def get_words(self, df: pd.DataFrame, collection_words: List[str], stop_words, clean: bool = True) -> pd.DataFrame:
         """
         # TODO: implement collections_word as automatic function, extracting them from tweet element itself
         # TODO: implement stop_words as automatic function, update format
-        splits tweet text into lists of words 
-        :param df: pd.DataFrame with 'full_text' column
+        splits tweet text into lists of words
+        :param df: pd.DataFrame with 'text' column
         :param collection_words: list[str], list of the word used to collect tweets
         :param stop_words: list[str], list of stopwords to remove
         :param clean: bool, if set to True (default) stop and collection words are removed
-        :return: pd.DataFrame with 'full_text' transformed into list of words
+        :return: pd.DataFrame with 'text' transformed into list of words
         """
         df = self.clean_text_df(df)
         if clean:
-            df['full_text'] = df['full_text'].apply(lambda x: [word for word in x if word not in stop_words])
-            df['full_text'] = df['full_text'].apply(lambda x: [word for word in x if word not in collection_words])
-            
+            df['text'] = df['text'].apply(lambda x: [word for word in x if word not in stop_words])
+            df['text'] = df['text'].apply(lambda x: [word for word in x if word not in collection_words])
+
         return df
 
     # TODO: Advanced request handling
