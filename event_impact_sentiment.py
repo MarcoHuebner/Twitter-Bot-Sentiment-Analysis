@@ -6,7 +6,7 @@ import pandas as pd
 
 from textblob import TextBlob
 from helpers import Helpers
-
+from scipy import stats
 
 # initialize api
 api_helpers = Helpers()
@@ -53,3 +53,6 @@ ax2.set_title("Sentiments from Tweets on #NoCovid (past:" + str(cutoff_date) + '
 ax2.set_xlabel('sentiment value')
 
 plt.show()
+# %% t test
+
+tstat, pval = stats.ttest_ind(sentiment_df_past['polarity'], sentiment_df_pre['polarity'])
