@@ -4,7 +4,8 @@ import datetime
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from textblob import TextBlob
+# from textblob import TextBlob
+from textblob_de import TextBlobDE as TextBlob
 from helpers import Helpers
 from scipy import stats
 

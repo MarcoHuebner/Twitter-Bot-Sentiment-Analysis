@@ -36,6 +36,7 @@ class Helpers(object):
             warnings.filterwarnings('ignore')
         # nltk stopwords download
         nltk.download('stopwords')
+        nltk.download('punkt')
         # plot settings
         sns.set(font_scale=1.5)
         sns.set_style('whitegrid')
