@@ -44,13 +44,14 @@ sentiment_df_pre = pd.DataFrame(list(itertools.chain(*sentiment_values_pre)), co
 # %% plot sentiments (without neutral words)
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 9))
 
-sentiment_df_pre[sentiment_df_pre.polarity != 0].plot.hist(ax=ax1, color='skyblue')
+sentiment_df_pre.plot.hist(ax=ax1, color='skyblue')
 ax1.set_title("Sentiments from Tweets on #NoCovid (pre:" + str(cutoff_date) + ')')
 ax1.set_xlabel('sentiment value')
 
-sentiment_df_past[sentiment_df_past.polarity != 0].plot.hist(ax=ax2, color='purple')
+sentiment_df_past.plot.hist(ax=ax2, color='purple')
 ax2.set_title("Sentiments from Tweets on #NoCovid (past:" + str(cutoff_date) + ')')
 ax2.set_xlabel('sentiment value')
+ax2.set_yscale('log')
 
 plt.show()
 # %% t test

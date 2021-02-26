@@ -20,6 +20,6 @@ items = 10
 
 # Collect tweets with selected API
 api_used = 0
-tweets = tw.Cursor(api[api_used].search, q=search_words, lang=lang, since=data_since).items(10)
+tweets = tw.Cursor(api[api_used].search, q=search_words, lang=lang, since=data_since).items(items)
 df = api_helpers.data_handler(tweets, geo=None, user_metadata=True)
 print(df)

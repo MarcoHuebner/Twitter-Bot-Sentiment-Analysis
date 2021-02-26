@@ -11,10 +11,10 @@ from helpers import Helpers
 api_helpers = Helpers()
 
 # Define search terms
-search_words = '#lockdown' + ' -filter:retweets'
+search_words = '#NoCovid' + ' -filter:retweets'
 data_since = '2021-02-11'
-lang = 'de'
-items = 10
+lang = 'en'
+items = 1000
 
 # save tweets
 api_helpers.tweet_saver(filename="example_search.txt", search_words=search_words, lang=lang, items=items)
