@@ -9,6 +9,7 @@ import json
 import nltk
 import time
 import warnings
+import datetime
 import numpy as np
 import pandas as pd
 import tweepy as tw
@@ -212,7 +213,7 @@ class Helpers(object):
                 for tweet in tweets]).T
 
         # Important: array_of_lists and info_list have to have the same ordering, otherwise later indexing fails
-        info_list = ["user", "location", "full_text"]
+        info_list = ["user", "location", "text"]
 
         # exception handling for different sized lists; not needed when array is used (done by numpy then)
         if any(len(lst) != len(array_of_lists[0]) for lst in array_of_lists):
@@ -273,7 +274,7 @@ class Helpers(object):
         return tweet_list
 
     @staticmethod
-    def clean_text(txt: str) -> str:
+    def _clean_text(txt: str) -> str:
         """
         Removes URLs and special characters, as well as splitting and transforming everything to lower case.
         :param txt: str, string to be transformed
@@ -281,23 +282,37 @@ class Helpers(object):
         """
         url_pattern = re.compile(r'https?://\S+|www\.\S+')
         no_url = url_pattern.sub(r'', txt)
-        return re.sub('([^0-9A-Za-z \t])', '', no_url).lower().split()
+        return re.sub('([^0-9A-Za-zäöüÄÖÜß \t])', '', no_url).lower().split()
+
+    @staticmethod
+    def _date_transform(date: str) -> datetime:
+        """
+        # TODO: Will be removed if new clean_text_df affirmed
+        ### Outdated ###
+        Transforms date from tweet in standardized datetime for cut-off handling.
+        :param date: str, date to be transform into datetime object
+        :return: datetime, standardized time string
+        """
+        return datetime.datetime.strptime(date, '%a %b %d %X %z %Y')
 
     def clean_text_df(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        # TODO: function changes object itself, but should give new changed object
-        Converts 'full_text' column of data handler DataFrame according to clean text function.
+        Converts 'text' column of data handler DataFrame according to clean text function.
         :param df: pd.DataFrame provided by data_handler
         :return: pd.DataFrame containing no URLs and only lowercase letters and numbers
         """
-        df["text"] = df["text"].map(self.clean_text)
-        return df
+        df1 = df.copy()
+        df1["text"] = df1["text"].map(self._clean_text)
+        df1['date'] = df1['date'].transform(lambda x: datetime.datetime.strptime(x, '%a %b %d %X %z %Y')).sort_values()
+        # old:
+        # df1['date'] = df1['date'].transform(self._date_transform).sort_values()
+        return df1
 
     def get_words(self, df: pd.DataFrame, collection_words: List[str], stop_words, clean: bool = True) -> pd.DataFrame:
         """
         # TODO: implement collections_word as automatic function, extracting them from tweet element itself
         # TODO: implement stop_words as automatic function, update format
-        splits tweet text into lists of words
+        Splits tweet text into lists of words.
         :param df: pd.DataFrame with 'text' column
         :param collection_words: list[str], list of the word used to collect tweets
         :param stop_words: list[str], list of stopwords to remove
