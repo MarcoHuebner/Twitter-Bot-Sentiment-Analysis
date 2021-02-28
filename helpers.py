@@ -8,6 +8,7 @@ import re
 import json
 import nltk
 import time
+import itertools
 import warnings
 import datetime
 import numpy as np
@@ -17,12 +18,14 @@ import seaborn as sns
 
 from typing import Any, List
 from config_local import ConfigPaths
+from textblob_de import TextBlobDE as TextBlob
 
 
 class Helpers(object):
     def __init__(self):
         pass
 
+    # META: Settings and Data Loading
     @staticmethod
     def settings(warning: str = None) -> None:
         """
@@ -41,6 +44,7 @@ class Helpers(object):
         # plot settings
         sns.set(font_scale=1.5)
         sns.set_style('whitegrid')
+
         return None
 
     @staticmethod
@@ -86,6 +90,7 @@ class Helpers(object):
                           "README on renaming config_default.py and check for "
                           "correctness of given path")
 
+    # Saving, Searching and Raw Data Processing
     def tweet_saver(self, filename: str, search_words: List[str], lang: str, items: int) -> None:
         """
         Performs cursor_search and appends tweet._json to specified file. No "since" compatibility so far, as tweets get
@@ -110,6 +115,7 @@ class Helpers(object):
                 open(ConfigPaths().save_dir + filename, 'a').close()
                 with open(ConfigPaths().save_dir + filename, "a") as file:
                     file.write(tweet)
+
         print("Searching and saving", items, "tweets took", time.time() - start, "seconds")
         return None
 
@@ -195,6 +201,7 @@ class Helpers(object):
             else:
                 # append to list of rows
                 row_list.append(row_dict)
+
         print("Processing", len(row_list), "tweets took", time.time() - start, "seconds")
         return pd.DataFrame(row_list)
 
@@ -273,6 +280,7 @@ class Helpers(object):
 
         return tweet_list
 
+    # META: Text and Advanced Data Processing
     @staticmethod
     def _clean_text(txt: str) -> str:
         """
@@ -282,6 +290,7 @@ class Helpers(object):
         """
         url_pattern = re.compile(r'https?://\S+|www\.\S+')
         no_url = url_pattern.sub(r'', txt)
+
         return re.sub('([^0-9A-Za-zäöüÄÖÜß \t])', '', no_url).lower().split()
 
     @staticmethod
@@ -306,6 +315,7 @@ class Helpers(object):
         df1['date'] = df1['date'].transform(lambda x: datetime.datetime.strptime(x, '%a %b %d %X %z %Y')).sort_values()
         # old:
         # df1['date'] = df1['date'].transform(self._date_transform).sort_values()
+
         return df1
 
     def get_words(self, df: pd.DataFrame, collection_words: List[str], stop_words, clean: bool = True) -> pd.DataFrame:
@@ -336,5 +346,15 @@ class Helpers(object):
         """
         pass
 
-    # TODO: Data visualization, e.g. for locations with e.g. seaborn/
-    # matplotlib scatter
+    # META: Data Evaluation
+    @staticmethod
+    def sentiment_analysis(df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Processes words in 'text' column to sentiment values, based on TextBlobDE.
+        :param df: pd.DataFrame, containing preprocessed tweets to analyze
+        :return: pd.DataFrame, containing sentiment values
+        """
+        sentiment_objects = [[TextBlob(word) for word in tweet] for tweet in df['text']]
+        sentiment_vals = [[[word.sentiment.polarity, str(word)] for word in tweet] for tweet in sentiment_objects]
+
+        return pd.DataFrame(list(itertools.chain(*sentiment_vals)), columns=["polarity", "tweet"])

@@ -19,6 +19,7 @@ from helpers import Helpers
 api_helpers = Helpers()
 
 # load and preprocess data
+api_helpers.settings()
 df = api_helpers.data_handler(tweets=None, geo=None, user_metadata=True, from_cursor=False,
                               filename="example_search.txt")
 trans_df = api_helpers.clean_text_df(df)
@@ -27,20 +28,13 @@ trans_df = api_helpers.clean_text_df(df)
 # %% Sentiment analysis conditioned on cut-off date
 # set cut-off date
 cutoff_date = datetime.datetime.strptime('Feb 24 08:00:00 +0000 2021', '%b %d %X %z %Y')
-df['cond'] = df['date'] >= cutoff_date
+df['cond'] = trans_df['date'] >= cutoff_date
 
 df_past, df_pre = df.loc[df['cond']], df.loc[~df['cond']]
 
-# Sentiment analysis past cutoff_date
-# TODO: Sentiment analysis function in helpers (conditioned on date/ data to avoid repetition)
-sentiment_objects_past = [[TextBlob(word) for word in tweet] for tweet in df_past['text']]
-sentiment_values_past = [[[word.sentiment.polarity, str(word)] for word in tweet] for tweet in sentiment_objects_past]
-sentiment_df_past = pd.DataFrame(list(itertools.chain(*sentiment_values_past)), columns=["polarity", "tweet"])
-
-# Sentiment analysis pre cutoff_date
-sentiment_objects_pre = [[TextBlob(word) for word in tweet] for tweet in df_pre['text']]
-sentiment_values_pre = [[[word.sentiment.polarity, str(word)] for word in tweet] for tweet in sentiment_objects_pre]
-sentiment_df_pre = pd.DataFrame(list(itertools.chain(*sentiment_values_pre)), columns=["polarity", "tweet"])
+# Sentiment analysis pre and past cutoff_date
+sentiment_df_past = api_helpers.sentiment_analysis(df_past)
+sentiment_df_pre = api_helpers.sentiment_analysis(df_pre)
 
 
 # %% plot sentiments (without neutral words)
