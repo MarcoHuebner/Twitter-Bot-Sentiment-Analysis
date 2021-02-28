@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 import tweepy as tw
 import seaborn as sns
+import matplotlib.pyplot as plt
 
 from typing import Any, List
 from config_local import ConfigPaths
@@ -116,7 +117,7 @@ class Helpers(object):
                 with open(ConfigPaths().save_dir + filename, "a") as file:
                     file.write(tweet)
 
-        print("Searching and saving", items, "tweets took", time.time() - start, "seconds")
+        print("TweetSaver: Searching and saving", items, "tweets took", time.time() - start, "seconds.")
         return None
 
     @staticmethod
@@ -141,7 +142,7 @@ class Helpers(object):
             tweets = tweets
         else:
             if filename is None:
-                raise ValueError("You must either define a filename to read from or set from_cursor to True")
+                raise ValueError("You must either define a filename to read from or set from_cursor to True!")
             with open(ConfigPaths().save_dir + filename) as file:
                 tweets = [line.rstrip() for line in file]
 
@@ -202,7 +203,7 @@ class Helpers(object):
                 # append to list of rows
                 row_list.append(row_dict)
 
-        print("Processing", len(row_list), "tweets took", time.time() - start, "seconds")
+        print("DataHandler: Processing", len(row_list), "tweets took", time.time() - start, "seconds.")
         return pd.DataFrame(row_list)
 
     @staticmethod
@@ -262,14 +263,14 @@ class Helpers(object):
                     tweet_list.append(json.dumps(tweet._json))
                 item_counter += 1
             except tw.TweepError:
-                print("Rate limit of current App reached")
+                print("Rate limit of current App reached.")
                 if current_api < len(api):
-                    print("Switching to next App")
+                    print("Switching to next App.")
                     current_api += 1
                     cursor = tw.Cursor(api[current_api].search, q=search_words, lang=lang, include_entities=True,
                                        max_id=json.loads(tweet_list[-1])["id"]).items()
                 else:
-                    print("All App requests used, waiting 15 min before continuing")
+                    print("All App requests used, waiting 15 min before continuing!")
                     current_api = 0
                     cursor = tw.Cursor(api[current_api].search, q=search_words, lang=lang, include_entities=True,
                                        max_id=json.loads(tweet_list[-1])["id"]).items()
@@ -291,7 +292,7 @@ class Helpers(object):
         url_pattern = re.compile(r'https?://\S+|www\.\S+')
         no_url = url_pattern.sub(r'', txt)
 
-        return re.sub('([^0-9A-Za-zäöüÄÖÜß \t])', '', no_url).lower().split()
+        return re.sub('([^0-9A-Za-zäöüÄÖÜß \t])', '', no_url).lower()
 
     @staticmethod
     def _date_transform(date: str) -> datetime:
@@ -311,7 +312,7 @@ class Helpers(object):
         :return: pd.DataFrame containing no URLs and only lowercase letters and numbers
         """
         df1 = df.copy()
-        df1["text"] = df1["text"].map(self._clean_text)
+        df1["text"] = df1["text"].apply(lambda x: self._clean_text(x))
         df1['date'] = df1['date'].transform(lambda x: datetime.datetime.strptime(x, '%a %b %d %X %z %Y')).sort_values()
         # old:
         # df1['date'] = df1['date'].transform(self._date_transform).sort_values()
@@ -348,13 +349,65 @@ class Helpers(object):
 
     # META: Data Evaluation
     @staticmethod
-    def sentiment_analysis(df: pd.DataFrame) -> pd.DataFrame:
+    def sentiment_word_analysis(df: pd.DataFrame) -> pd.DataFrame:
         """
         Processes words in 'text' column to sentiment values, based on TextBlobDE.
         :param df: pd.DataFrame, containing preprocessed tweets to analyze
         :return: pd.DataFrame, containing sentiment values
         """
-        sentiment_objects = [[TextBlob(word) for word in tweet] for tweet in df['text']]
-        sentiment_vals = [[[word.sentiment.polarity, str(word)] for word in tweet] for tweet in sentiment_objects]
+        # TODO: Make language compatible sentiment analysis (Problems might arise when using TextBlobDE on 'eng' tweets)
+        word_sentiments = [[TextBlob(word) for word in tweet] for tweet in df['text'].apply(lambda x: x.split())]
+        sentiment_vals = [[[word.sentiment.polarity, str(word)] for word in tweet] for tweet in word_sentiments]
 
-        return pd.DataFrame(list(itertools.chain(*sentiment_vals)), columns=["polarity", "tweet"])
+        return pd.DataFrame(list(itertools.chain(*sentiment_vals)), columns=["polarity", "word"])
+
+    @staticmethod
+    def sentiment_tweet_analysis(df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Processes full tweets in 'text' column to sentiment values, based on TextBlobDE.
+        :param df: pd.DataFrame, containing preprocessed tweets to analyze
+        :return: pd.DataFrame, containing sentiment values
+        """
+        # TODO: Make language compatible sentiment analysis (Problems might arise when using TextBlobDE on 'eng' tweets)
+        tweet_sentiments = [TextBlob(tweet) for tweet in df['text']]
+        sentiment_vals = [objects.sentiment.polarity for objects in tweet_sentiments]
+
+        return pd.DataFrame(list(zip(sentiment_vals, [tweet for tweet in df['text']])), columns=["polarity", "tweet"])
+
+    @staticmethod
+    def plot_sentiment_analysis(df_pre: pd.DataFrame, df_past: pd.DataFrame, title: str, cutoff_date: datetime,
+                                show: bool = True, save: str = []) -> None:
+        """
+        Allows plotting and saving of generated sentiment/ polarity analysis DataFrames.
+        # TODO: if sentiment_word_analysis and sentiment_tweet_analysis stay the only two functions, consider moving
+            more preprocessing (e.g. df_pre & df_past split) into this function.
+        :param df_pre: pd.DataFrame, DataFrame containing polarity values before cut-off date
+        :param df_past: pd.DataFrame, DataFrame containing polarity values after cut-off date
+        :param title: str, title
+        :param cutoff_date: datetime, cut-off date for polarity comparison
+        :param show: bool, if True plt.show()
+        :param save: str, specify file name + type inside of ConfigPaths().plot_dir
+        :return: None
+        """
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 9))
+
+        if not df_pre.empty:
+            df_pre.plot.hist(ax=ax1, color='skyblue')
+            ax1.set_title("Sentiment Analysis for Tweets on " + title + "\n (pre:" + str(cutoff_date) + ")")
+            ax1.set_xlabel('Polarity distribution according to TextBlob')
+            ax1.set_yscale('log')
+
+        if not df_past.empty:
+            df_past.plot.hist(ax=ax2, color='purple')
+            ax2.set_title("Sentiment Analysis for Tweets on " + title + "\n (past:" + str(cutoff_date) + ")")
+            ax2.set_xlabel('Polarity distribution according to TextBlob')
+            ax2.set_yscale('log')
+
+        if df_pre.empty or df_past.empty:
+            print("Warning: Cut-Off time badly chosen. Either Pre- or Past-DataFrame is empty!")
+        if save:
+            plt.savefig(ConfigPaths().plot_dir + save, transparent="True", bbox_inches="tight")
+        if show:
+            plt.show()
+
+        return None
