@@ -13,3 +13,4 @@ class ConfigPaths(object):
         self.work_dir = str(pathlib.Path().absolute())
         self.key_dir = '/path/to/keys.csv'
         self.save_dir = '/path/to/data/directory'
+        self.plot_dir = '/path/to/plots'

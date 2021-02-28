@@ -25,4 +25,5 @@ structure is somewhat clean.
 After cloning, run `pip install -r requirements.txt` to get the relevant packages. Might not include all necessary 
 packages yet, but I would like to try that on Linux, not Windows. 
 
-Rename all `config_default.py` to `config_local.py` and specify the correct local paths.
+Rename all `config_default.py` to `config_local.py` and specify the correct local path for keys, save directory for 
+tweets as well as directory for plots to save to.
