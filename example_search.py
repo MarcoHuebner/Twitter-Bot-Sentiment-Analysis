@@ -12,8 +12,9 @@ api_helpers = Helpers()
 
 # Define search terms
 search_words = '#NoCovid' + ' -filter:retweets'
-data_since = '2021-02-11'
-lang = 'en'
+# TODO: replace cursor search to allow for (now) unused data_since
+# data_since = '2021-02-11'
+lang = 'de'
 items = 1000
 
 # save tweets
