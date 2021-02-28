@@ -22,8 +22,7 @@ trans_df = api_helpers.clean_text_df(df)
 # %% Sentiment analysis conditioned on cut-off date
 # set cut-off date
 print("The median Date of the dataset is ", trans_df['date'].median())
-#cutoff_date = datetime.datetime.strptime('Feb 24 08:00:00 +0000 2021', '%b %d %X %z %Y')
-cutoff_date = datetime.datetime.strptime('Feb 28 13:47:46 +0000 2021', '%b %d %X %z %Y')
+cutoff_date = datetime.datetime.strptime('Feb 24 08:00:00 +0000 2021', '%b %d %X %z %Y')
 trans_df['cond'] = trans_df['date'] >= cutoff_date
 
 df_past, df_pre = trans_df.loc[trans_df['cond']], trans_df.loc[~trans_df['cond']]
