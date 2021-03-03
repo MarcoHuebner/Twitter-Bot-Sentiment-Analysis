@@ -1,6 +1,9 @@
 """
-# TODO: Description
-
+The following code analyses the sentiment values of tweets. Furthermore, it can
+be used to compare sentiments before and after a specific event. Thefore, two
+things a neccesary: Suitable tweet-data that can be optained via the procedure
+described in example_search.py and a cutoff-date, which marks the event before
+and after which you want to compare your tweets.
 """
 
 import datetime
