@@ -416,7 +416,7 @@ class Helpers(object):
     def mmd(x: np.ndarray, y: np.ndarray, kernel: str) -> float:
         """
         Empirical maximum mean discrepancy. The lower the result he more evidence that distributions are the same.
-        Taken from https://www.kaggle.com/onurtunali/maximum-mean-discrepancy and modified with numpy for 1D case.
+        Taken from https://www.kaggle.com/onurtunali/maximum-mean-discrepancy and modified with numpy.
         :param x: np.ndarray, first sample, distribution P
         :param y: np.ndarray, second sample, distribution Q
         :param kernel: str, kernel type such as "multiscale" or "rbf"
@@ -428,9 +428,13 @@ class Helpers(object):
             print("Warning: Inputs have different shapes, will reduce to the lower shape amount: ", min(lens))
             x, y = x[:min(lens)], y[:min(lens)]
 
-        # element-wise multiplication and reduction to diag elements
+        # expand dims to be able to correctly transpose
+        x = np.expand_dims(x, 1)
+        y = np.expand_dims(y, 1)
+        # element-wise multiplication and computation of diag elements in an appropriate manner
         xmx, ymy, xmy = (x @ x.T), (y @ y.T), (x @ y.T)
-        rx, ry = xmx, ymy  # for 1d case
+        rx = np.repeat(np.expand_dims(np.diag(xmx), 0), lens[0], axis=0)
+        ry = np.repeat(np.expand_dims(np.diag(ymy), 0), lens[0], axis=0)
 
         # computing sums of empirical sample MMD
         dxx, dyy, dxy = rx.T + rx - 2. * xmx, ry.T + ry - 2. * ymy, rx.T + ry - 2. * xmy
