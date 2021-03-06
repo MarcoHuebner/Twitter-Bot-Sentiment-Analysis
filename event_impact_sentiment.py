@@ -44,3 +44,9 @@ tstat_tweet, pval_tweet = stats.ttest_ind(tweet_df_past['polarity'], tweet_df_pr
 
 print("Two-sided t-test result on the word polarity analysis: ", tstat, pval)
 print("Two-sided t-test result on the tweet polarity analysis: ", tstat_tweet, pval_tweet)
+
+# %% MMD to check similarity between the tweet distributions
+print("MMD with 'multiscale' kernel result:", api_helpers.mmd(sentiment_df_past['polarity'].values,
+                                                              sentiment_df_pre['polarity'].values, kernel="multiscale"))
+print("MMD with 'rbf' kernel result: ", api_helpers.mmd(sentiment_df_past['polarity'].values,
+                                                        sentiment_df_pre['polarity'].values, kernel="rbf"))
