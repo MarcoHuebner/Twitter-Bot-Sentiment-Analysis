@@ -411,3 +411,50 @@ class Helpers(object):
             plt.show()
 
         return None
+
+    @staticmethod
+    def mmd(x: np.ndarray, y: np.ndarray, kernel: str) -> float:
+        """
+        Empirical maximum mean discrepancy. The lower the result he more evidence that distributions are the same.
+        Taken from https://www.kaggle.com/onurtunali/maximum-mean-discrepancy and modified with numpy.
+        :param x: np.ndarray, first sample, distribution P
+        :param y: np.ndarray, second sample, distribution Q
+        :param kernel: str, kernel type such as "multiscale" or "rbf"
+        :return: float, computed MMD with respective kernel
+        """
+        # exception handling for different sized input
+        lens = [len(x), len(y)]
+        if lens[0] != lens[1]:
+            print("Warning: Inputs have different shapes, will reduce to the lower shape amount: ", min(lens))
+            x, y = x[:min(lens)], y[:min(lens)]
+
+        # expand dims to be able to correctly transpose
+        x = np.expand_dims(x, 1)
+        y = np.expand_dims(y, 1)
+        # element-wise multiplication and computation of diag elements in an appropriate manner
+        xmx, ymy, xmy = (x @ x.T), (y @ y.T), (x @ y.T)
+        rx = np.repeat(np.expand_dims(np.diag(xmx), 0), lens[0], axis=0)
+        ry = np.repeat(np.expand_dims(np.diag(ymy), 0), lens[0], axis=0)
+
+        # computing sums of empirical sample MMD
+        dxx, dyy, dxy = rx.T + rx - 2. * xmx, ry.T + ry - 2. * ymy, rx.T + ry - 2. * xmy
+
+        if any([dxx.shape != dyy.shape, dxx.shape != dxy.shape]):
+            raise ValueError("Dimension mismatch in computation of MMD!")
+
+        if kernel == "multiscale":
+            bandwidths = [0.2, 0.5, 0.9, 1.3]
+            xx = sum([a ** 2 * (a ** 2 + dxx) ** -1 for a in bandwidths])
+            yy = sum([a ** 2 * (a ** 2 + dyy) ** -1 for a in bandwidths])
+            xy = sum([a ** 2 * (a ** 2 + dxy) ** -1 for a in bandwidths])
+
+        elif kernel == "rbf":
+            bandwidths = [10, 15, 20, 50]
+            xx = sum([np.exp(-0.5 * dxx / a) for a in bandwidths])
+            yy = sum([np.exp(-0.5 * dyy / a) for a in bandwidths])
+            xy = sum([np.exp(-0.5 * dxy / a) for a in bandwidths])
+
+        else:
+            raise ValueError("No kernel given, possibilities are 'multiscale' and 'rbf'.")
+
+        return np.mean(xx + yy - 2. * xy)
