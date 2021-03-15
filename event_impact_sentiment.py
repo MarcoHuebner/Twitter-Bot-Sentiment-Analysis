@@ -17,8 +17,12 @@ api_helpers = Helpers()
 
 # load and preprocess data
 api_helpers.settings()
-df = api_helpers.data_handler(tweets=None, geo=None, user_metadata=True, from_cursor=False,
-                              filename="example_search.txt")
+
+df1 = api_helpers.data_handler(tweets=None, geo=None, user_metadata=True, from_cursor=False,
+                               filename="lockdown_022621.txt")
+df2 = api_helpers.data_handler(tweets=None, geo=None, user_metadata=True, from_cursor=False,
+                               filename="lockdown_030721.txt")
+df = df1.append(df2, ignore_index=True)
 trans_df = api_helpers.clean_text_df(df)
 
 
