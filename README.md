@@ -1,29 +1,32 @@
 # Twitter-Bot & Sentiment-Analysis
 
-### Using the Twitter API for minor (hopefully somewhat) useful toy projects
+### Using the Twitter API for a minor toy project
 
-- Cluster-/ hashtag-analysis as described by 
-  [EarthLab](https://www.earthdatascience.org/courses/use-data-open-source-python/intro-to-apis/twitter-data-in-python/)
-  
-- Sentiment analysis with text/ regex preprocessing, bag of words etc. 
+Up to now this Repo contains some functions regarding **Sentiment analysis** with tweet *regex preprocessing* as form of
+tokenization to use simple *bag-of-words*-like methods for *polarity* and *sentiment analysis*. It also supports 
+automated *multi-API* search for data generation via [**Tweepy**](https://docs.tweepy.org/en/latest/) - but obviously 
+comes without the [API keys](https://developer.twitter.com/en).
 
-Should be published (for visibility purposes) after initial jupyter notebooks were removed and the code and repo 
-structure is somewhat clean.
+Up to now this Repo only contains basic classical machine learning on the data, as without more accurate labelling of
+tweets for example RNNs are neither faster and nor more accurate than the baseline, thus making these imo superfluent.
 
-### Next steps
+Other useful analyses which are **not included** but might be considered in the future are for example:
+- Cluster- and Hashtag-analysis
+- [GPS data](https://www.earthdatascience.org/courses/use-data-open-source-python/intro-to-apis/twitter-data-in-python/)
 
-- [Tweepy Documentation](https://docs.tweepy.org/en/latest/)
-  - [Tweepy API.search Documentation](https://docs.tweepy.org/en/latest/api.html?highlight=api.search#API.search)
-  - [Tweepy API Reference](https://docs.tweepy.org/en/latest/api.html) for rate limit handling
-- [Twitter API limits](https://developer.twitter.com/en/docs/twitter-api/rate-limits) Assuming API v2 is used.
-- Stuff like [this](https://www.youtube.com/watch?v=W0wWwglE1Vc) might provide further useful first steps.
-- Idea: Mining and negative mining 0.1: Try to extract age/ gender etc. data based on tweet history and find ways to 
-  "trick" the discriminator by new bot posts to anonymize identity.
+### Work in progress
+
+- Parameter for language compatibility for [TextBlob](https://textblob.readthedocs.io/en/dev/) (right now only 
+  hard-coded)
+- Use tqdm for progress tracking when loading tweets
+- Still searching for efficient ways to allow search beyond the "recent" week given by twitter's API/ tweepy
+- Improve and simplify (for the user) handling of data distribution comparison (MMD vs t-test vs. ...)
+- Visually improve plots
 
 ### Installation
 
 After cloning, run `pip install -r requirements.txt` to get the relevant packages. Might not include all necessary 
 packages yet, but I would like to try that on Linux, not Windows. 
 
-Rename all `config_default.py` to `config_local.py` and specify the correct local path for keys, save directory for 
+Rename all `config_default.py` to `config_local.py` and specify the correct local path for API-keys, save directory for 
 tweets as well as directory for plots to save to.

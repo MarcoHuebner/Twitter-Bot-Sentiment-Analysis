@@ -1,6 +1,6 @@
 """
-Example for using the new tweet_saver and cursor_search from helpers
-From my experience, saving one tweet takes 4-4.5 KB disk space (derived from 34 tweets)
+Example for the new tweet_saver and cursor_search from helpers
+From my experience, saving one tweet takes around 4-4.5 KB disk space (derived from 34 tweets)
 
 """
 

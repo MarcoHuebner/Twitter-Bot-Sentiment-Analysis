@@ -1,7 +1,7 @@
 """
 The following code analyses the sentiment values of tweets. Furthermore, it can
-be used to compare sentiments before and after a specific event. Thefore, two
-things a neccesary: Suitable tweet-data that can be optained via the procedure
+be used to compare sentiments before and after a specific event. Therefore, two
+things a necessary: Suitable tweet-data that can be obtained via the procedure
 described in example_search.py and a cutoff-date, which marks the event before
 and after which you want to compare your tweets.
 """
@@ -27,6 +27,7 @@ trans_df = api_helpers.clean_text_df(df)
 
 
 # %% Sentiment analysis conditioned on cut-off date
+# TODO: needs to be automated/ outsourced (e.g. if one file, split according to median, if two files use those separate)
 # set cut-off date
 print("The median Date of the dataset is ", trans_df['date'].median())
 cutoff_date = datetime.datetime.strptime('Feb 24 08:00:00 +0000 2021', '%b %d %X %z %Y')
@@ -42,9 +43,11 @@ tweet_df_past = api_helpers.sentiment_tweet_analysis(df_past)
 tweet_df_pre = api_helpers.sentiment_tweet_analysis(df_pre)
 
 # %% plot sentiments (without neutral words)
+# TODO: Improve visualization
 api_helpers.plot_sentiment_analysis(sentiment_df_pre, sentiment_df_past, "#NoCovid", cutoff_date, show=True)
 api_helpers.plot_sentiment_analysis(tweet_df_pre, tweet_df_past, "#NoCovid", cutoff_date, show=True)
 
+# TODO: think on own, small statistic module for easy to interpret stat. comparison
 # %% t test
 tstat, pval = stats.ttest_ind(sentiment_df_past['polarity'], sentiment_df_pre['polarity'])
 tstat_tweet, pval_tweet = stats.ttest_ind(tweet_df_past['polarity'], tweet_df_pre['polarity'])
