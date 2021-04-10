@@ -1,5 +1,5 @@
 twitter.*
-old files.*
+old files/*
 .idea.*
 *.xml
 *.iml
