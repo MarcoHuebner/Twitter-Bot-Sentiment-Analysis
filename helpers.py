@@ -17,7 +17,8 @@ import tweepy as tw
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-from typing import Any, List
+from tqdm import tqdm
+from typing import Any, List, Union
 from config_local import ConfigPaths
 from textblob_de import TextBlobDE as TextBlob
 
@@ -92,7 +93,7 @@ class Helpers(object):
                           "correctness of given path")
 
     # Saving, Searching and Raw Data Processing
-    def tweet_saver(self, filename: str, search_words: List[str], lang: str, items: int) -> None:
+    def tweet_saver(self, filename: str, search_words: Union[str, List[str]], lang: str, items: int) -> None:
         """
         Performs cursor_search and appends tweet._json to specified file. No "since" compatibility so far, as tweets get
         filtered by chronological movement back in time.
@@ -103,7 +104,9 @@ class Helpers(object):
         :return: None
         """
         # TODO: replace cursor_search with more sophisticated and encompassing method (e.g. for going back longer than
-        #  weeks and/ or not only using tw.Cursor)
+        #       weeks and/ or not only using tw.Cursor)
+        # TODO: think on how to save cursor searches in smaller intervals without losing too much time, as returning one
+        #       list for a big search might surpass memory limitations and fail
         start = time.time()
         tweets = self.cursor_search(search_words=search_words, lang=lang, items=items)
         # append to existing file or create new file if file is not existing
@@ -254,6 +257,8 @@ class Helpers(object):
         # define cursor object to call .next() on in loop, max_id - 1 to avoid repetition of first tweet
         cursor = tw.Cursor(api[current_api].search, q=search_words, lang=lang, include_entities=True,
                            max_id=json.loads(tweet_list[0])["id"]-1).items()
+        # initialize tqdm bar to track progress
+        pbar = tqdm(total=items, desc="Tweet search progress")
         while True:
             try:
                 tweet = cursor.next()
@@ -262,6 +267,7 @@ class Helpers(object):
                 else:
                     tweet_list.append(json.dumps(tweet._json))
                 item_counter += 1
+                pbar.update(1)
             except tw.TweepError:
                 print("Rate limit of current App reached.")
                 if current_api < len(api):
@@ -279,6 +285,7 @@ class Helpers(object):
             except StopIteration:
                 break
 
+        pbar.close()
         return tweet_list
 
     # META: Text and Advanced Data Processing
@@ -314,8 +321,6 @@ class Helpers(object):
         df1 = df.copy()
         df1["text"] = df1["text"].apply(lambda x: self._clean_text(x))
         df1['date'] = df1['date'].transform(lambda x: datetime.datetime.strptime(x, '%a %b %d %X %z %Y')).sort_values()
-        # old:
-        # df1['date'] = df1['date'].transform(self._date_transform).sort_values()
 
         return df1
 
@@ -337,8 +342,37 @@ class Helpers(object):
 
         return df
 
-    # TODO: Advanced request handling
+    def split_df(self, df1: pd.DataFrame, df2: pd.DataFrame = None, cutoff_date: datetime.datetime = None) -> \
+            tuple[pd.DataFrame, pd.DataFrame]:
+        """
+        Takes either one DataFrame and splits according to median if no cut-off data given or takes two DataFrames and
+        treats them separately.
+        :param df1: pd.DataFrame, required first DataFrame containing all data
+        :param df2: pd.DataFrame, optional second DataFrame if data was taken separately
+        :param cutoff_date: datetime.datetime, optional manual cut-off date. Pattern: '%b %d %X %z %Y'
+        :return: tuple[pd.DataFrame, pd.DataFrame], cleaned and splitted DataFrames, ready for comparison
+        """
+        # return readable error if no first DataFrame given
+        if (df1 is None) or df1.empty:
+            raise ValueError("At least one non-empty DataFrame is required!")
+        # set median as cut-off date if not given
+        if cutoff_date is None:
+            cutoff_date = df1['date'].median()
 
+        if df2:
+            if (len(df1) > 10*len(df2)) or (10*len(df1) < len(df2)):
+                print("Warning: One DataFrame is much longer than the other. MMD (distribution comparison) will "
+                      "automatically cut to lower length and therefore biases might arise and part of the data will "
+                      "not be evaluated.")
+            return self.clean_text_df(df1), self.clean_text_df(df2)
+
+        else:
+            cleaned_df = df1.copy()
+            cleaned_df = self.clean_text_df(cleaned_df)
+            cleaned_df['cond'] = cleaned_df['date'] >= cutoff_date
+            return cleaned_df.loc[cleaned_df['cond']], cleaned_df.loc[~cleaned_df['cond']]
+
+    # TODO: Advanced request handling
     @staticmethod
     def cache():
         """
@@ -380,7 +414,7 @@ class Helpers(object):
         """
         Allows plotting and saving of generated sentiment/ polarity analysis DataFrames.
         # TODO: if sentiment_word_analysis and sentiment_tweet_analysis stay the only two functions, consider moving
-            more preprocessing (e.g. df_pre & df_past split) into this function.
+                more preprocessing (e.g. df_pre & df_past split) into this function.
         :param df_pre: pd.DataFrame, DataFrame containing polarity values before cut-off date
         :param df_past: pd.DataFrame, DataFrame containing polarity values after cut-off date
         :param title: str, title
@@ -390,6 +424,9 @@ class Helpers(object):
         :return: None
         """
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 9))
+
+        if df_pre.empty or df_past.empty:
+            print("Warning: Cut-Off time badly chosen. Either Pre- or Past-DataFrame is empty!")
 
         if not df_pre.empty:
             df_pre.plot.hist(ax=ax1, color='skyblue')
@@ -403,12 +440,10 @@ class Helpers(object):
             ax2.set_xlabel('Polarity distribution according to TextBlob')
             ax2.set_yscale('log')
 
-        if df_pre.empty or df_past.empty:
-            print("Warning: Cut-Off time badly chosen. Either Pre- or Past-DataFrame is empty!")
-        if save:
-            plt.savefig(ConfigPaths().plot_dir + save, transparent="True", bbox_inches="tight")
         if show:
             plt.show()
+        if save:
+            plt.savefig(ConfigPaths().plot_dir + save, transparent="True", bbox_inches="tight")
 
         return None
 
