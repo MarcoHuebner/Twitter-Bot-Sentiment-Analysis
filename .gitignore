@@ -1,4 +1,5 @@
 twitter.*
+twitter/*
 old files/*
 .idea.*
 *.xml
