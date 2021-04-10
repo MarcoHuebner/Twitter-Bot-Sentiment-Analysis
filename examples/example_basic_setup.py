@@ -1,5 +1,5 @@
 """
-Old toy example, removed from base.py and showing of new data handler as well as basic setup
+Toy example showing of data handler as well as basic setup with tweepy (and without our methods).
 
 """
 
@@ -18,7 +18,7 @@ data_since = '2021-02-11'
 lang = 'de'
 items = 10
 
-# Collect tweets with selected API
+# Collect tweets with first API
 api_used = 0
 tweets = tw.Cursor(api[api_used].search, q=search_words, lang=lang, since=data_since).items(items)
 df = api_helpers.data_handler(tweets, geo=None, user_metadata=True)

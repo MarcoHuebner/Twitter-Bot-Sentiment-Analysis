@@ -1,7 +1,9 @@
 """
 Contains paths to:
-- keys.csv for access keys/ tokens (containing consumer_key, consumer_secret, access_token and access_token_secret)
 - working directory
+- keys.csv for access keys/ tokens (containing consumer_key, consumer_secret, access_token and access_token_secret)
+- save directory (for tweets in *.txt format)
+- plot directory (for plots)
 
 """
 

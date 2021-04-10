@@ -10,3 +10,4 @@ pathlib>=1.0.1
 networkx>=2.5
 textblob>=0.15.3
 textblob-de>=0.4.3
+scipy>=1.6.0
