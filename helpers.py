@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 import tweepy as tw
 import seaborn as sns
+import plotly.express as px
 import matplotlib.pyplot as plt
 
 from tqdm import tqdm
@@ -402,15 +403,15 @@ class Helpers(object):
         :param df: pd.DataFrame, containing preprocessed tweets to analyze
         :return: pd.DataFrame, containing sentiment values
         """
-        # TODO: Make language compatible sentiment analysis (Problems might arise when using TextBlobDE on 'eng' tweets)
+        # TODO: Make sentiment analysis language compatible (Problems might arise when using TextBlobDE on 'eng' tweets)
         tweet_sentiments = [TextBlob(tweet) for tweet in df['text']]
         sentiment_vals = [objects.sentiment.polarity for objects in tweet_sentiments]
 
         return pd.DataFrame(list(zip(sentiment_vals, [tweet for tweet in df['text']])), columns=["polarity", "tweet"])
 
     @staticmethod
-    def plot_sentiment_analysis(df_pre: pd.DataFrame, df_past: pd.DataFrame, title: str, cutoff_date: datetime,
-                                show: bool = True, save: str = []) -> None:
+    def plot_sentiment_analysis_plt(df_pre: pd.DataFrame, df_past: pd.DataFrame, title: str, cutoff_date: datetime,
+                                    show: bool = True, save: str = []) -> None:
         """
         Allows plotting and saving of generated sentiment/ polarity analysis DataFrames.
         # TODO: if sentiment_word_analysis and sentiment_tweet_analysis stay the only two functions, consider moving
@@ -448,6 +449,38 @@ class Helpers(object):
         return None
 
     @staticmethod
+    def plot_sentiment_analysis(df_pre: pd.DataFrame, df_past: pd.DataFrame, title: str, cutoff_date: datetime,
+                                show: bool = True, save: str = []) -> None:
+        """
+        Allows plotting and saving of generated sentiment/ polarity analysis DataFrames, interactively with plotly.
+        :param df_pre: pd.DataFrame, DataFrame containing polarity values before cut-off date
+        :param df_past: pd.DataFrame, DataFrame containing polarity values after cut-off date
+        :param title: str, title
+        :param cutoff_date: datetime, cut-off date for polarity comparison
+        :param show: bool, if True plt.show()
+        :param save: str, specify file name + type inside of ConfigPaths().plot_dir
+        :return: None
+        """
+        # Add extra column to separate plot traces
+        df_pre["trace"], df_past["trace"] = "before", "after"
+        plot_df = df_pre.append(df_past, ignore_index=True)
+
+        if df_pre.empty or df_past.empty:
+            print("Warning: Cut-Off time badly chosen. Either Pre- or Past-DataFrame is empty!")
+
+        fig = px.histogram(plot_df, x="polarity", color="trace", marginal="rug", hover_data=plot_df.columns, log_y=True,
+                           title=f"Sentiment Analysis for Tweets on {title} \n around {str(cutoff_date)}")
+
+        if show:
+            fig.show()
+        if save:
+            if not save.endswith(".html"):
+                save += ".html"
+            fig.write_html(ConfigPaths().plot_dir + save, transparent="True", bbox_inches="tight")
+
+        return None
+
+    @staticmethod
     def mmd(x: np.ndarray, y: np.ndarray, kernel: str) -> float:
         """
         Empirical maximum mean discrepancy. The lower the result he more evidence that distributions are the same.
@@ -461,15 +494,15 @@ class Helpers(object):
         lens = [len(x), len(y)]
         if lens[0] != lens[1]:
             print("Warning: Inputs have different shapes, will reduce to the lower shape amount: ", min(lens))
-            x, y = x[:min(lens)], y[:min(lens)]
+            x, y = np.random.choice(x, min(lens), replace=False), np.random.choice(y, min(lens), replace=False)
 
         # expand dims to be able to correctly transpose
         x = np.expand_dims(x, 1)
         y = np.expand_dims(y, 1)
         # element-wise multiplication and computation of diag elements in an appropriate manner
         xmx, ymy, xmy = (x @ x.T), (y @ y.T), (x @ y.T)
-        rx = np.repeat(np.expand_dims(np.diag(xmx), 0), lens[0], axis=0)
-        ry = np.repeat(np.expand_dims(np.diag(ymy), 0), lens[0], axis=0)
+        rx = np.repeat(np.expand_dims(np.diag(xmx), 0), min(lens), axis=0)
+        ry = np.repeat(np.expand_dims(np.diag(ymy), 0), min(lens), axis=0)
 
         # computing sums of empirical sample MMD
         dxx, dyy, dxy = rx.T + rx - 2. * xmx, ry.T + ry - 2. * ymy, rx.T + ry - 2. * xmy
